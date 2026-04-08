@@ -2048,8 +2048,9 @@ function seedRealData(){
   var seededHives = JSON.parse(localStorage.getItem('hk_hives_v2'))||[];
   seededHives.forEach(function(h){ h.apiaryId = 'apiary_meadowbrook'; });
   localStorage.setItem('hk_hives_v2', JSON.stringify(seededHives));
+  localStorage.setItem('hk_current_apiary', defaultApiaryId);
   localStorage.setItem('hk_seeded_v5', '1');
-  console.log('HiveKeeper v5: Nene Valley Lavender Farm loaded');
+  console.log('HiveKeeper v5: Nene Valley Lavender Farm loaded — 24 hives seeded');
 }
 
 // ═══════════════════════════════════════════════
@@ -5595,19 +5596,15 @@ function switchApiary(id) {
 function initCurrentApiary() {
   var apiaries = loadApiaries();
   if (!apiaries.length) {
-    // Create default apiary from existing hive data
-    var defaultId = 'apiary_default';
-    var defaultApiary = {id: defaultId, name: 'My Apiary', location: '', createdAt: Date.now()};
-    saveApiaries([defaultApiary]);
-    // Tag all existing hives with this apiary
-    var hives = loadHives();
-    hives.forEach(function(h){ if(!h.apiaryId) h.apiaryId = defaultId; });
-    saveHives(hives);
-    localStorage.setItem(CURRENT_APIARY_KEY, defaultId);
-    currentApiaryId = defaultId;
+    // No apiaries yet — seed hasn't run or localStorage was cleared
+    // Don't create a default here; let seedRealData handle it
+    currentApiaryId = null;
   } else {
-    var current = getCurrentApiary();
-    currentApiaryId = current ? current.id : apiaries[0].id;
+    // Use stored current apiary, or fall back to first
+    var storedId = localStorage.getItem(CURRENT_APIARY_KEY);
+    var match = storedId ? apiaries.find(function(a){ return a.id === storedId; }) : null;
+    var current = match || apiaries[0];
+    currentApiaryId = current.id;
     localStorage.setItem(CURRENT_APIARY_KEY, currentApiaryId);
   }
 }
