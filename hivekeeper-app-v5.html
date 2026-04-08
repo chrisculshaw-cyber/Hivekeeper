@@ -2927,6 +2927,26 @@ function closeModal(e,id){ if(e.target===document.getElementById(id)) closeModal
 // ═══════════════════════════════════════════════
 
 seedRealData();
+// V5: Always force Nene Valley Lavender Farm as the active apiary
+(function enforceV5Apiary() {
+  var MEADOWBROOK_ID = 'apiary_meadowbrook';
+  // Ensure the apiary record exists
+  var apiaries = JSON.parse(localStorage.getItem('hk_apiaries_v1') || '[]');
+  var hasIt = apiaries.find(function(a){ return a.id === MEADOWBROOK_ID; });
+  if (!hasIt) {
+    apiaries.unshift({id: MEADOWBROOK_ID, name: 'Nene Valley Lavender Farm', location: 'Brigstock, Northamptonshire', createdAt: 1712000000000});
+    localStorage.setItem('hk_apiaries_v1', JSON.stringify(apiaries));
+  }
+  // Always set current apiary to meadowbrook
+  localStorage.setItem('hk_current_apiary', MEADOWBROOK_ID);
+  // Re-tag any hives that are missing an apiaryId
+  var hives = JSON.parse(localStorage.getItem('hk_hives_v2') || '[]');
+  var fixed = false;
+  hives.forEach(function(h) {
+    if (!h.apiaryId) { h.apiaryId = MEADOWBROOK_ID; fixed = true; }
+  });
+  if (fixed) localStorage.setItem('hk_hives_v2', JSON.stringify(hives));
+})();
 initCurrentApiary();
 applySettings();
 // Set apiary name display
